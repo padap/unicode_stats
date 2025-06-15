@@ -1,4 +1,4 @@
-__version__ = "0.3.1"
+__version__ = "0.3.3"
 
 from .unicode_parser import UnicodeBlockParser
 # from .aggregation import AggregatedUnicodeBlockParser

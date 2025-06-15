@@ -230,6 +230,38 @@ class AggregatedUnicodeBlockParser:
             logging.error("JSON parsing error in %s: %s", fn, e)
             raise ExceptionFileInput(f"Error parsing JSON in {fn}: {e}") from e
 
+    def read_json(self, fn: str) -> List[Dict]:
+        """
+        Reads a JSON file and returns a list of dictionaries.
+
+        Parameters
+        ----------
+        fn : str
+            The filename of the JSON file.
+
+        Returns
+        -------
+        list of dict
+            Parsed JSON data as a list of dictionaries.
+
+        Raises
+        ------
+        ExceptionFileInput
+            If there is an error reading or parsing the file.
+        """
+        try:
+            list_of_dicts = json.load(open(fn, "r", encoding="utf-8"))
+            if len(list_of_dicts) > self.max_lines:
+                logging.warning("Truncating input to %s lines from %s", self.max_lines, fn)
+                list_of_dicts = list_of_dicts[:self.max_lines]
+            return list_of_dicts
+        except (FileNotFoundError, IOError) as e:
+            logging.error("File error in %s: %s", fn, e)
+            raise ExceptionFileInput(f"Error reading file {fn}: {e}") from e
+        except json.JSONDecodeError as e:
+            logging.error("JSON parsing error in %s: %s", fn, e)
+            raise ExceptionFileInput(f"Error parsing JSON in {fn}: {e}") from e
+    
     def get_stats(self, fn_input: str) -> DataFrame:
         """
         Reads a JSONL file and returns aggregated Unicode statistics as a DataFrame.
@@ -244,7 +276,13 @@ class AggregatedUnicodeBlockParser:
         pandas.DataFrame
             Aggregated statistics DataFrame with Unicode block and column data.
         """
-        list_of_dicts = self.read_jsonl(fn_input)
+        if fn_input.endswith('.jsonl'):
+            list_of_dicts = self.read_jsonl(fn_input)
+        elif fn_input.endswith('.json'):
+            list_of_dicts = self.read_json(fn_input)
+        else:
+            raise ValueError("Unknown format for input file: {fn_input}. Expected .jsonl or .json")
+        
         return self.get_aggregated_statistics_df(list_of_dicts)
 
 
@@ -274,7 +312,7 @@ def main_fire(fn_input: str, fn_output: str = 'auto', columns: Union[str, List[s
                                           max_lines=max_lines)
     df = parser.get_stats(fn_input)
     df.to_csv(fn_output, index=False)
-    print(f"Aggregated statistics saved to {fn_output}")
+    logging.info("Aggregated statistics saved to %s", fn_output)
 
 
 def main_bash_entry_point():
