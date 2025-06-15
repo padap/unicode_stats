@@ -5,13 +5,14 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "unicode_stats"
 license = "MIT"
-version = "0.3.0"
+version = "0.3.1"
 description = "Tool to analyze unicode content"
 readme = "README.md"
 requires-python = ">=3.6"
 authors = [
     {name = "Adamenko Pavel", email = "padamenko@gmail.com"},
 ]
+urls = {homepage = "https://github.com/padap/unicode_stats"}
 
 
 classifiers = [
